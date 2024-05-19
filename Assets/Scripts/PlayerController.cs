@@ -6,17 +6,28 @@ public class PlayerController : MonoBehaviour
     Vector2 moveInput;
     public float walkSpeed = 5f;
     public float runSpeed = 8f;
+    public float jumpImpulse = 10f;
+    public float airWalkSpeed = 3f;
 
     private bool _isMoving = false;
     private bool _isRunning = false;
     public bool isFacingRight = true;
 
+    TouchingDirections touchingDirections;
+
     public float CurrentMoveSpeed {
         get 
         {
-            if (IsMoving)
+            if (IsMoving && !touchingDirections.IsOnWall)
             {
-                return (IsRunning) ? runSpeed : walkSpeed;
+                if (touchingDirections.IsGrounded)
+                {
+                    return (IsRunning) ? runSpeed : walkSpeed;
+                }
+                else
+                {
+                    return airWalkSpeed;
+                }
             }
             else
             {
@@ -34,7 +45,7 @@ public class PlayerController : MonoBehaviour
         private set
         {
             _isMoving = value;
-            animator.SetBool("isMoving", value);
+            animator.SetBool(AnimationStrings.isMoving, value);
         }
     }
 
@@ -47,7 +58,7 @@ public class PlayerController : MonoBehaviour
         private set
         {
             _isRunning = value;
-            animator.SetBool("isRunning", value);
+            animator.SetBool(AnimationStrings.isRunning, value);
         }
     }
 
@@ -67,17 +78,20 @@ public class PlayerController : MonoBehaviour
     }
 
     Rigidbody2D rb;
-    Animator animator;  
+    Animator animator;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        touchingDirections = GetComponent<TouchingDirections>();
     }
 
     private void FixedUpdate()
     {
         rb.velocity = new Vector2(moveInput.x * CurrentMoveSpeed, rb.velocity.y);
+
+        animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -111,6 +125,16 @@ public class PlayerController : MonoBehaviour
         else if (context.canceled)
         {
             IsRunning = false;
+        }
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        // TODO Check alive
+        if (context.started && touchingDirections.IsGrounded)
+        {
+            animator.SetTrigger(AnimationStrings.jump);
+            rb.velocity = new Vector2(rb.velocity.x, jumpImpulse);
         }
     }
 }
