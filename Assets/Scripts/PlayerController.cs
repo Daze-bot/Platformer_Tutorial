@@ -6,7 +6,8 @@ public class PlayerController : MonoBehaviour
     Vector2 moveInput;
     public float walkSpeed = 5f;
     public float runSpeed = 8f;
-    public float jumpImpulse = 10f;
+    public float slowJumpImpulse = 6f;
+    public float fastJumpImpulse = 9f;
     public float airWalkSpeed = 3f;
 
     private bool _isMoving = false;
@@ -134,7 +135,16 @@ public class PlayerController : MonoBehaviour
         if (context.started && touchingDirections.IsGrounded)
         {
             animator.SetTrigger(AnimationStrings.jump);
-            rb.velocity = new Vector2(rb.velocity.x, jumpImpulse);
+
+            if (IsRunning)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, fastJumpImpulse);
+            }
+            else
+            {
+                rb.velocity = new Vector2(rb.velocity.x, slowJumpImpulse);
+            }
+            
         }
     }
 }
